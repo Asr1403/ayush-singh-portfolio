@@ -28,7 +28,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/ayush-singh-portfolio:latest
 
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -37,8 +37,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/ayush-singh-portfolio:latest
             docker stop portfolio-container || true
             docker rm portfolio-container || true
-            docker run -d \
-              --name portfolio-container \
-              --restart unless-stopped \
-              -p 3000:80 \
-              ${{ secrets.DOCKER_USERNAME }}/ayush-singh-portfolio:latest
+            docker run -d --name portfolio-container --restart unless-stopped -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/ayush-singh-portfolio:latest
