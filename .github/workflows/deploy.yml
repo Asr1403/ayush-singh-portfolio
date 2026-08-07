@@ -1,35 +1,35 @@
-name: Deploy to EC2
+name: CI/CD Pipeline
 
 on:
-  workflow_run:
-    workflows: ["Docker CI/CD Pipeline"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  # This is your existing build job (the name might vary slightly in your file)
+  docker-build: 
     runs-on: ubuntu-latest
+    steps:
+      # ... your existing build and push steps ...
 
+  # This is your deploy job
+  deploy:
+    needs: docker-build # THIS IS THE CRITICAL LINE! It tells GitHub to wait.
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
-
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-
           script: |
             docker pull ayush0814/ayush-singh-portfolio:latest
-
             docker stop portfolio || true
             docker rm portfolio || true
-
             docker run -d \
               --name portfolio \
               --restart always \
-              -p 3000:80 \
+              -p 8080:80 \
               ayush0814/ayush-singh-portfolio:latest
-
-            docker image prune -f
+            sudo systemctl restart nginx
