@@ -1,0 +1,33 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["Docker CI/CD Pipeline"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ayush0814/ayush-singh-portfolio:latest
+
+            docker stop portfolio || true
+            docker rm portfolio || true
+
+            docker run -d \
+              --name portfolio \
+              --restart always \
+              -p 3000:80 \
+              ayush0814/ayush-singh-portfolio:latest
+
+            docker image prune -f
